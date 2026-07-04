@@ -434,13 +434,11 @@ export default function HomePageClient({
 
             {/* Fixed buttons */}
             <div className="fixed bottom-20 right-4 sm:right-6 z-40 flex flex-col items-end gap-2">
-                <Link href="/try-aihr" className="hover:scale-105 transition-transform" title="Try AIHR">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                        src="/images/try-aihr-trigger.png"
-                        alt="Try AIHR"
-                        className="w-28 sm:w-40 md:w-52 h-auto object-contain drop-shadow-2xl"
-                    />
+                <Link
+                    href="/try-aihr"
+                    className="bg-[#d4a84b] hover:bg-[#b8902f] text-[#0d1f35] px-4 py-2.5 rounded-full shadow-lg text-sm font-semibold inline-flex items-center gap-2 hover:scale-105 transition-transform"
+                >
+                    {lang === "zh" ? "体验全新 AIHR" : "Try Our NEW AIHR"}
                 </Link>
                 <a
                     href="https://wa.me/6594362866"
