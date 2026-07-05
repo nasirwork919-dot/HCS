@@ -11,10 +11,7 @@ export default function EmployerClient() {
     <div className="bg-white">
       <section className="bg-[#0a1628] py-20 lg:py-28 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="inline-flex rounded-full border border-[#d4a84b]/30 bg-[#d4a84b]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#e8c97a] mb-6">
-            {e.badge}
-          </p>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">{e.title}</h1>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">{e.title}</h1>
           <p className="text-white/70 text-lg max-w-2xl mx-auto">{e.desc}</p>
         </div>
       </section>
