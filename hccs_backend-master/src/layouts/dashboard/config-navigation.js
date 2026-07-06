@@ -134,6 +134,16 @@ export function useNavData() {
             title: 'Compliance Scan',
             path: paths.compliance_scan.root,
             icon: <Iconify icon="mdi:clipboard-check-outline" />,
+            children: [
+              {
+                title: 'Submissions',
+                path: paths.compliance_scan.root,
+              },
+              {
+                title: 'Dashboard',
+                path: paths.compliance_scan.dashboard,
+              },
+            ],
           },
 
           {

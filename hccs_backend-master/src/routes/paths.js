@@ -92,6 +92,7 @@ export const paths = {
   },
   compliance_scan: {
     root: ROOTS.COMPLIANCE_SCAN,
+    dashboard: `${ROOTS.COMPLIANCE_SCAN}/dashboard`,
   },
   compliance_scan_fmas: {
     root: ROOTS.COMPLIANCE_SCAN_FMAS,
