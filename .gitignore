@@ -2,8 +2,6 @@
 # Each subproject also has its own .gitignore — both are honoured.
 
 # Environment files — exclude ALL .env* variants, including .env.OLD-* backups
-.env
-.env.*
 *.env
 
 # Migration data — contains live customer PII; never commit
@@ -70,3 +68,4 @@ potential missing chatbot docs/
 **/~*.docx
 **/~*.pdf
 
+config.bat
