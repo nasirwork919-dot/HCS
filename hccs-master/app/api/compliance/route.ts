@@ -15,63 +15,6 @@ import {
     adaptFrontendBody,
     PdfServiceUnavailableError,
 } from "@/lib/compliance/generate-pdf";
-import { mergePdfBuffers } from "@/lib/compliance/merge-pdf";
-
-const COMPLIANCE_DOCUMENTS_BUCKET = "compliance-documents";
-
-// Combines this submission's report with whichever "standard document" the
-// admin panel currently has configured (compliance_standard_document, most
-// recent row = current) into "Document C", storing both for the admin
-// panel's compliance_document history. Silently does nothing if no standard
-// document has been set up yet. Never blocks or fails the submission.
-async function generateDocumentC(supabase: SupabaseClient, scanId: number, pdfBuffer: Buffer): Promise<void> {
-    const { data: standardDoc } = await supabase
-        .from("compliance_standard_document")
-        .select("storage_path, original_filename")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    if (!standardDoc) return;
-
-    const { data: standardFile, error: downloadError } = await supabase.storage
-        .from(COMPLIANCE_DOCUMENTS_BUCKET)
-        .download(standardDoc.storage_path);
-    if (downloadError || !standardFile) {
-        console.error("[compliance] failed to download standard document:", downloadError?.message);
-        return;
-    }
-    const standardBuffer = Buffer.from(await standardFile.arrayBuffer());
-
-    const mergedBuffer = await mergePdfBuffers(pdfBuffer, standardBuffer);
-
-    const timestamp = Date.now();
-    const basePath = `compliance/${scanId}/${timestamp}`;
-    const documentAPath = `${basePath}-document-a.pdf`;
-    const documentCPath = `${basePath}-document-c.pdf`;
-
-    const [uploadA, uploadC] = await Promise.all([
-        supabase.storage.from(COMPLIANCE_DOCUMENTS_BUCKET).upload(documentAPath, pdfBuffer, { contentType: "application/pdf" }),
-        supabase.storage.from(COMPLIANCE_DOCUMENTS_BUCKET).upload(documentCPath, mergedBuffer, { contentType: "application/pdf" }),
-    ]);
-    if (uploadA.error || uploadC.error) {
-        console.error("[compliance] failed to upload Document A/C:", uploadA.error?.message, uploadC.error?.message);
-        return;
-    }
-
-    const { error: insertError } = await supabase.from("compliance_document").insert({
-        compliance_scan_id: scanId,
-        uploaded_by: null,
-        document_b_filename: standardDoc.original_filename,
-        document_b_path: standardDoc.storage_path,
-        document_a_path: documentAPath,
-        document_c_path: documentCPath,
-        notes: "Auto-generated from the standard document at submission time.",
-    });
-    if (insertError) {
-        console.error("[compliance] failed to insert compliance_document row:", insertError.message);
-    }
-}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -319,8 +262,7 @@ export async function POST(req: NextRequest) {
     const resendApiKey = process.env.RESEND_API_KEY?.trim();
     const resendFrom = "mail@hccs.sg";
 
-    // Generate the report PDF once, reused for both the customer email and
-    // the admin-panel Document C auto-combine below.
+    // Generate the report PDF once, for the customer email attachment.
     let pdfBuffer: Buffer | null = null;
     if (scanRow) {
         try {
@@ -356,14 +298,9 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    if (scanRow && pdfBuffer) {
-        try {
-            await generateDocumentC(supabase, scanRow.id, pdfBuffer);
-        } catch (docErr) {
-            console.error("[compliance] Document C generation error:", docErr);
-            // Non-fatal — submission already saved and emailed.
-        }
-    }
+    // Document C is no longer generated here — it's deferred until this lead
+    // pays for the Expert Advisory consultation (see
+    // app/api/webhooks/calendly/route.ts).
 
     return NextResponse.json({ ok: true }, { status: 200 });
 }
